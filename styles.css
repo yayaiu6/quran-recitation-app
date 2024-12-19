@@ -1,0 +1,100 @@
+/* إعدادات الخط */
+@font-face {
+    font-family: 'QuranFont';
+    src: url('KfgqpcHafsUthmanicScriptRegular-1jGEe.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'TitleFont';
+    src: url('AalmaghribiIslamic-gwwd1.ttf') format('truetype');
+}
+
+/* تنسيقات الأساسية */
+body {
+    background-color: #f0f3f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    direction: rtl;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    color: #000000aa;
+    font-size: 2em;
+    margin-bottom: 20px;
+    font-family: 'TitleFont';
+}
+
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+    font-family: 'QuranFont', Arial, sans-serif;
+}
+
+select, .start-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 1em;
+}
+
+.start-btn {
+    background-color: #006400;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    transition: background-color 0.3s ease;
+}
+
+.start-btn:hover {
+    background-color: #004d00;
+}
+
+/* تنسيقات عرض الآيات */
+.ayah-container {
+    text-align: right;
+    font-size: 1.5em;
+    line-height: 2em;
+    margin-top: 20px;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: 'QuranFont';
+}
+
+.word {
+    position: relative;
+    padding: 0 5px;
+}
+
+.highlight {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: transparent;
+    opacity: 0.3;
+    border-radius: 5px;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
