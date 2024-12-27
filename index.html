@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسميع القرآن الكريم باستخدام الذكاء الاصطناعي</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="form-container">
         <h1>نموذج تسميع القرآن الكريم بالذكاء الاصطناعي</h1>
 
+        <!-- اختيار السورة -->
         <label for="surahSelect">اختر السورة :</label>
         <select id="surahSelect">
             <option value="">-- اختر السورة --</option>
         </select>
 
+        <!-- زر بدء التسميع -->
         <button id="startListeningBtn" class="start-btn">بدء التسميع</button>
 
+        <!-- صندوق النص المنطوق في الوقت الفعلي -->
+        <div id="realTimeTextBox" class="real-time-text-box"></div>
+
+        <!-- حاوية الآيات -->
         <div id="ayahContainer" class="ayah-container"></div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- سكريبت الجافاسكربت -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-
 
