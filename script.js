@@ -1,7 +1,10 @@
+// static/script.js
+
 document.addEventListener("DOMContentLoaded", () => {
     const surahSelect = document.getElementById("surahSelect");
     const ayahContainer = document.getElementById("ayahContainer");
     const startListeningBtn = document.getElementById("startListeningBtn");
+    const realTimeTextBox = document.getElementById("realTimeTextBox"); // إضافة العنصر الجديد
 
     let isListening = false;
     let mediaRecorder = null;
@@ -9,17 +12,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentSurahId = null;
     let recordingIntervalId = null;
 
-    const API_BASE = "http://523c-34-75-67-44.ngrok-free.app";
+    const API_BASE = ""; // يمكنك تحديد قاعدة URL إذا كان هناك مسار أساسي
 
-
-    // دالة مساعدة للقيام بالطلبات بـ fetch واستخدام async/await
     const fetchJSON = async (url, options = {}) => {
         const response = await fetch(url, options);
         if (!response.ok) throw new Error(`Error: ${response.statusText}`);
         return response.json();
     };
 
-    // تحميل قائمة السور
     const loadSurahs = async () => {
         try {
             const surahs = await fetchJSON(`${API_BASE}/surahs`);
@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // تحميل الآيات بناءً على السورة المحددة
     const loadAyahs = async (surahId) => {
         try {
             currentSurahId = surahId;
@@ -46,48 +45,78 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // عرض الآيات وكلماتها
     const displayAyahs = (ayahs) => {
-        ayahContainer.innerHTML = ayahs.map(ayah => `
-            <div class="ayah" data-aya-no="${ayah.aya_no}">
-                ${ayah.aya_text.split(" ").map((word, index) => `
-                    <span class="word" data-word-index="${index}">${word} </span>
-                `).join('')}
-            </div>
-        `).join('');
+        ayahContainer.innerHTML = ayahs.map(ayah => 
+            `<div class="ayah" data-aya-no="${ayah.aya_no}">
+                ${ayah.aya_text.split(" ").map((word, index) => 
+                    `<span class="word" data-word-index="${index}">${word} </span>`
+                ).join('')}
+            </div>`
+        ).join('');
     };
 
-    // تحديث ألوان الكلمات بناءً على التحليل
-    const updateWordColors = ({ aya_no, word_matches }) => {
-        document.querySelectorAll('.word').forEach(word => {
-            word.style.color = 'black';
-            word.style.backgroundColor = 'transparent';
-        });
+    // مجموعة لتخزين الكلمات التي تم تمييزها بالفعل
+    const highlightedWords = new Set();
 
+    // مؤشر للكلمة الحالية
+    let currentWordIndex = 0;
+
+    const updateWordColors = ({ aya_no, word_matches }) => {
         const ayahElement = document.querySelector(`[data-aya-no="${aya_no}"]`);
         if (!ayahElement) return;
+
+        // إعادة تعيين الألوان لجميع الكلمات
+        ayahElement.querySelectorAll('.word').forEach(word => {
+            word.style.color = 'black';
+            // إذا لم يتم تمييز الكلمة بالفعل، قم بإزالة الخلفية
+            if (!highlightedWords.has(word.textContent.trim())) {
+                word.style.backgroundColor = 'transparent';
+            }
+        });
 
         word_matches.forEach(({ index, similarity }) => {
             const wordElement = ayahElement.querySelector(`.word[data-word-index="${index}"]`);
             if (wordElement) {
-                wordElement.style.backgroundColor = similarity >= 0.7 ? '#90EE90' : '#FFB6C1';
+                const wordText = wordElement.textContent.trim();
+                if (similarity >= 0.7 && !highlightedWords.has(wordText)) {
+                    wordElement.style.backgroundColor = '#90EE90'; // أخضر
+                    highlightedWords.add(wordText);
+                    
+                    // تسليط الضوء على الكلمة التالية
+                    currentWordIndex = index + 1;
+                    const nextWordElement = ayahElement.querySelector(`.word[data-word-index="${currentWordIndex}"]`);
+                    if (nextWordElement && !highlightedWords.has(nextWordElement.textContent.trim())) {
+                        nextWordElement.style.backgroundColor = '#ADD8E6'; // أزرق فاتح للكلمة التالية
+                    }
+                }
             }
         });
+
+        // تمرير الآية إلى وسط الشاشة
+        ayahElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        ayahElement.style.backgroundColor = "#FFFFCC";
+        setTimeout(() => ayahElement.style.backgroundColor = "transparent", 2000);
     };
 
-    // معالجة الصوت المرسل من الميكروفون
+    // تحديث النص المنطوق في الوقت الفعلي
+    const updateRealTimeText = (text) => {
+        realTimeTextBox.style.display = "block"; // إظهار الصندوق
+        realTimeTextBox.innerText = text;
+    };
+
     const processAudio = async (audioBlob) => {
         const formData = new FormData();
         formData.append("audio", audioBlob);
         formData.append("surah_id", currentSurahId);
 
         try {
-            console.log("FormData:", Array.from(formData.entries()));
             const data = await fetchJSON(`${API_BASE}/process-audio`, {
                 method: "POST",
                 body: formData
             });
-            console.log("Server response:", data);
+            if (data.transcription) {
+                updateRealTimeText(data.transcription); // تحديث النص المنطوق
+            }
             data.analysis && updateWordColors(data.analysis);
         } catch (error) {
             alert("حدث خطأ أثناء معالجة الصوت. الرجاء المحاولة مرة أخرى.");
@@ -95,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // بدء أو إيقاف الاستماع
     const toggleListening = () => {
         if (!isListening) {
             if (!currentSurahId) {
@@ -140,14 +168,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const stopListening = () => {
         isListening = false;
         startListeningBtn.textContent = "بدء التسميع";
-        mediaRecorder?.state === "recording" && mediaRecorder.stop();
-        recordingIntervalId && clearInterval(recordingIntervalId);
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+        }
+        if (recordingIntervalId) {
+            clearInterval(recordingIntervalId);
+        }
     };
 
-    // إعداد الأحداث
     startListeningBtn.addEventListener("click", toggleListening);
     surahSelect.addEventListener("change", e => e.target.value && loadAyahs(e.target.value));
 
-    // تحميل السور عند تحميل الصفحة
     loadSurahs();
 });
