@@ -34,5 +34,5 @@ SURAHS_NAMES = {
 }
 
 
-API_openai = "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"
+
  
